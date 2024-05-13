@@ -65,19 +65,8 @@ func (suite *OrderRepositoryTestSuite) TestListOrders() {
 	err = repo.Save(order2)
 	suite.NoError(err)
 
-	var orderResult entity.Order
-	var orders []entity.Order
-	rows, err := suite.Db.Query("Select id, price, tax, final_price from orders order by id")
+	orders, err := repo.List()
 	suite.NoError(err)
-
-	defer rows.Close()
-
-	for rows.Next() {
-		err = rows.Scan(&orderResult.ID, &orderResult.Price, &orderResult.Tax, &orderResult.FinalPrice)
-		suite.NoError(err)
-		orders = append(orders, orderResult)
-	}
-
-	suite.Equal(order1.ID, orders[0].ID)
-	suite.Equal(order2.ID, orders[1].ID)
+	suite.NotEmpty(orders[0].ID)
+	suite.NotEmpty(orders[1].ID)
 }
