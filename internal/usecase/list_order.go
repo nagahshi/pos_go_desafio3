@@ -8,6 +8,29 @@ type ListOrderUseCase struct {
 	OrderRepository entity.OrderRepositoryInterface
 }
 
-func (c *ListOrderUseCase) Execute() ([]OrderOutputDTO, error) {
-	return nil, nil
+func NewListOrderUseCaseUseCase(
+	OrderRepository entity.OrderRepositoryInterface,
+) *ListOrderUseCase {
+	return &ListOrderUseCase{
+		OrderRepository: OrderRepository,
+	}
+}
+
+func (c *ListOrderUseCase) Execute() (orders []OrderOutputDTO, err error) {
+	ordersData, err := c.OrderRepository.List()
+	if err != nil {
+		return nil, err
+	}
+
+	var DTO OrderOutputDTO
+	for _, order := range ordersData {
+		DTO.ID = order.ID
+		DTO.Price = order.Price
+		DTO.Tax = order.Tax
+		DTO.FinalPrice = order.FinalPrice
+
+		orders = append(orders, DTO)
+	}
+
+	return orders, nil
 }

@@ -11,6 +11,18 @@ type CreateOrderUseCase struct {
 	EventDispatcher events.EventDispatcherInterface
 }
 
+func NewCreateOrderUseCase(
+	OrderRepository entity.OrderRepositoryInterface,
+	OrderCreated events.EventInterface,
+	EventDispatcher events.EventDispatcherInterface,
+) *CreateOrderUseCase {
+	return &CreateOrderUseCase{
+		OrderRepository: OrderRepository,
+		OrderCreated:    OrderCreated,
+		EventDispatcher: EventDispatcher,
+	}
+}
+
 func (c *CreateOrderUseCase) Execute(input OrderInputDTO) (OrderOutputDTO, error) {
 	order := entity.Order{
 		ID:    input.ID,
