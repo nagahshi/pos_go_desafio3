@@ -7,7 +7,6 @@ import (
 	"github.com/devfullcycle/20-CleanArch/internal/entity"
 	"github.com/devfullcycle/20-CleanArch/internal/usecase"
 	"github.com/devfullcycle/20-CleanArch/pkg/events"
-	"github.com/google/uuid"
 )
 
 type WebOrderHandler struct {
@@ -36,11 +35,8 @@ func (h *WebOrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// new uuid
-	dto.ID = uuid.New().String()
-
-	createOrder := usecase.NewCreateOrderUseCase(h.OrderRepository, h.OrderCreatedEvent, h.EventDispatcher)
-	output, err := createOrder.Execute(dto)
+	createOrderUC := usecase.NewCreateOrderUseCase(h.OrderRepository, h.OrderCreatedEvent, h.EventDispatcher)
+	output, err := createOrderUC.Execute(dto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,9 +49,9 @@ func (h *WebOrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebOrderHandler) List(w http.ResponseWriter, r *http.Request) {
-	createOrder := usecase.NewListOrderUseCaseUseCase(h.OrderRepository)
+	listOrderUC := usecase.NewListOrderUseCase(h.OrderRepository)
 
-	output, err := createOrder.Execute()
+	output, err := listOrderUC.Execute()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/devfullcycle/20-CleanArch/internal/entity"
 	"github.com/devfullcycle/20-CleanArch/pkg/events"
+	"github.com/google/uuid"
 )
 
 type CreateOrderUseCase struct {
@@ -25,11 +26,17 @@ func NewCreateOrderUseCase(
 
 func (c *CreateOrderUseCase) Execute(input OrderInputDTO) (OrderOutputDTO, error) {
 	order := entity.Order{
-		ID:    input.ID,
+		ID:    uuid.New().String(),
 		Price: input.Price,
 		Tax:   input.Tax,
 	}
+
 	order.CalculateFinalPrice()
+
+	if err := order.IsValid(); err != nil {
+		return OrderOutputDTO{}, err
+	}
+
 	if err := c.OrderRepository.Save(&order); err != nil {
 		return OrderOutputDTO{}, err
 	}
