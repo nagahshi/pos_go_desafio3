@@ -8,7 +8,7 @@ type ListOrderUseCase struct {
 	OrderRepository entity.OrderRepositoryInterface
 }
 
-func NewListOrderUseCaseUseCase(
+func NewListOrderUseCase(
 	OrderRepository entity.OrderRepositoryInterface,
 ) *ListOrderUseCase {
 	return &ListOrderUseCase{
