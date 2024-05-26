@@ -18,6 +18,8 @@ type conf struct {
 	RMQPassword   string `mapstructure:"RMQ_PASSWORD"`
 	RMQHost       string `mapstructure:"RMQ_HOST"`
 	RMQServerPort string `mapstructure:"RMQ_SERVER_PORT"`
+
+	PathOfMigrations string `mapstructure:"PATH_OF_MIGRATIONS"`
 }
 
 func LoadConfig(path string) (*conf, error) {
