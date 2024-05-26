@@ -19,6 +19,8 @@ func NewListOrderUseCase(
 func (c *ListOrderUseCase) Execute() (orders []OrderOutputDTO, err error) {
 	ordersData, err := c.OrderRepository.List()
 	if err != nil {
+		println(err)
+		println()
 		return nil, err
 	}
 
