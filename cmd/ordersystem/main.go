@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
+	"os/exec"
+	"path/filepath"
 
-	graphql_handler "github.com/99designs/gqlgen/graphql/handler"
+	graphqlHandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/devfullcycle/20-CleanArch/configs"
 	"github.com/devfullcycle/20-CleanArch/internal/event/handler"
@@ -29,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
+	db, err := getMysqlConn(configs.DBDriver, configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName, configs.PathOfMigrations)
 	if err != nil {
 		panic(err)
 	}
@@ -66,8 +69,9 @@ func main() {
 	}
 	go grpcServer.Serve(lis)
 
-	srv := graphql_handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
+	srv := graphqlHandler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		CreateOrderUseCase: *createOrderUseCase,
+		ListOrderUseCase:   *listOrderUseCase,
 	}}))
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
@@ -76,6 +80,7 @@ func main() {
 	http.ListenAndServe(":"+configs.GraphQLServerPort, nil)
 }
 
+// realiza conexao com o rmq
 func getRabbitMQChannel(RMQUser, RMQPassword, RMQHost, RMQServerPort string) *amqp.Channel {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", RMQUser, RMQPassword, RMQHost, RMQServerPort))
 	if err != nil {
@@ -88,4 +93,65 @@ func getRabbitMQChannel(RMQUser, RMQPassword, RMQHost, RMQServerPort string) *am
 	}
 
 	return ch
+}
+
+// realiza a conexão com mysql
+func getMysqlConn(DBDriver, DBUser, DBPassword, DBHost, DBPort, DBName, PathOfMigrations string) (*sql.DB, error) {
+	db, err := sql.Open(DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/sys", DBUser, DBPassword, DBHost, DBPort))
+	if err != nil {
+		return nil, err
+	}
+
+	// cria banco de dados caso não exista
+	row, err := db.Exec("CREATE DATABASE IF NOT EXISTS " + DBName)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = row.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	db.Close()
+
+	// abre uma conexão com o banco de dados da aplicacao
+	DSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", DBUser, DBPassword, DBHost, DBPort, DBName)
+	db, err = sql.Open(DBDriver, DSN)
+	if err != nil {
+		return nil, err
+	}
+
+	// checa conexao
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	// busca pasta das migracoes
+	pathMigrationFiles, err := filepath.Abs(PathOfMigrations)
+	if err != nil {
+		return nil, err
+	}
+
+	// executa migracoes
+	// garanta que golang-migrate esteja instalado corretamente
+	// estou rodando dessa forma pois em meu ambiente não estava
+	// funcionando o esquema de diretorios usando a lib golang-migrate
+	_, _, err = Shellout("migrate -database \"mysql://" + DSN + "\" -path " + pathMigrationFiles + " up")
+	if err != nil {
+		return nil, err
+	}
+
+	// retorno uma conexão ativa
+	return db, nil
+}
+
+func Shellout(command string) (string, string, error) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command("bash", "-c", command)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.String(), stderr.String(), err
 }
