@@ -15,9 +15,16 @@ __API de pedidos tipos de chamadas suportadas REST/GRAPHQL/GRPC__
 modelo .env-example
 * use make caso queria rodar a aplicação sem o build
 * aplicação está escutando nas seguintes portas:
- - 8080 REST
- - 8081 GRPC
- - 8082 GRAPHQL
+    - 8080 REST
+    - 8081 GRPC
+    - 8082 GRAPHQL
+
+### Uso
+* após  a instalação dos pacotes necessários
+abra o terminal digite `make run`.
+    - endpoints : [GET] /orders e [POST] /orders
+    - gRPC: [OrderService] listOrder e [OrderService] CreateOrder
+    - graphql: [query] listOrder e [mutation] createOrder
 
 ### Fontes
 
