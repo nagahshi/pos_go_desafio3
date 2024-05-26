@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
-	"github.com/devfullcycle/20-CleanArch/pkg/events"
 	"github.com/google/uuid"
+	"github.com/nagahshi/pos_go_desafio3/internal/entity"
+	"github.com/nagahshi/pos_go_desafio3/pkg/events"
 )
 
 type CreateOrderUseCase struct {

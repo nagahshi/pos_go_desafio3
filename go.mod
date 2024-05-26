@@ -1,4 +1,4 @@
-module github.com/devfullcycle/20-CleanArch
+module github.com/nagahshi/pos_go_desafio3
 
 go 1.19
 
