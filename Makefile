@@ -6,4 +6,7 @@ graphqlgen:
 	go run github.com/99designs/gqlgen generate
 run:
 	@go run cmd/ordersystem/main.go cmd/ordersystem/wire_gen.go
+build:
+	go build cmd/ordersystem/main.go cmd/ordersystem/wire_gen.go -o main && ./wait-for-it.sh localhost:8080
+
 .PHONY: migrate protoc
